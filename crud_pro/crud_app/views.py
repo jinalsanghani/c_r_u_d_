@@ -1,38 +1,58 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from .models import UserDetails
-from .forms import UserDetailsForm
-
-def user_list(request):
-    users = UserDetails.objects.all()
-    return render(request, 'user_list.html', {'users': users})
+from django.shortcuts import render, redirect
+from .models import User
+from django.shortcuts import render, get_object_or_404
+from django.urls import reverse
+from django.http import HttpResponseRedirect
 
 def user_create(request):
     if request.method == 'POST':
-        form = UserDetailsForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('user_list')
-    else:
-        form = UserDetailsForm()
-    return render(request, 'user_form.html', {'form': form})
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        email = request.POST.get('email')
+        city = request.POST.get('city')
+        birthdate = request.POST.get('birthdate')
+
+        user = User.objects.create(
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            city=city,
+            birthdate=birthdate
+        )
+        return redirect('user_list')  # Redirect to a user list page
+    return render(request, 'user_form.html')  # Render the form template
+
+def user_list(request):
+    users = User.objects.all()
+    return render(request, 'user_list.html', {'users': users})
 
 def update_user(request, user_id):
-    user = get_object_or_404(UserDetails, pk=user_id)
+    user = get_object_or_404(User, id=user_id)
+    
     if request.method == 'POST':
-        form = UserDetailsForm(request.POST, instance=user)
-        if form.is_valid():
-            form.save()
-            return redirect('user_list')  
-    else:
-        form = UserDetailsForm(instance=user)
-    return render(request, 'update_user.html', {'form': form})
+        email = request.POST['email']
+        first_name = request.POST['first_name']
+        last_name = request.POST['last_name']
+        birthdate = request.POST['birthdate']
+        city = request.POST['city']
+        
+
+        user.email = email
+        user.first_name = first_name
+        user.last_name = last_name
+        user.birthdate = birthdate
+        user.city = city
+        user.save()
+        
+        return redirect('user_list')
+    
+    return render(request, 'update_user.html', {'user': user})
 
 def delete_user(request, user_id):
-    user = get_object_or_404(UserDetails, pk=user_id)
-    
-    # Check if the request method is POST (usually from a form submission)
+    user = get_object_or_404(User, pk=user_id)
     if request.method == 'POST':
         user.delete()
-        return redirect('user_list')
+        return redirect('user_list')  
+    
+    return render(request, 'delete_user.html', {'user': user})
 
-    return render(request, 'confirm_delete.html', {'user': user})

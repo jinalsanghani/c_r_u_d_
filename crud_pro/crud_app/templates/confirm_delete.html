@@ -1,5 +1,0 @@
-<form action="{% url 'delete_user' user.id %}" method="post">
-    {% csrf_token %}
-    <p>Are you sure you want to delete user {{ user.name }}?</p>
-    <input type="submit" value="Delete">
-</form>
